@@ -3,8 +3,13 @@ target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
+
+# Ignorar archivos de configuración real generados
 src/main/resources/application.properties
 src/main/resources/application-*.properties
+
+# Versionar la plantilla de configuración de ejemplo
+!src/main/resources/application-example.properties
 
 ### STS ###
 .apt_generated
