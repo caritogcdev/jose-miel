@@ -1,2 +1,18 @@
+# Maven wrapper
 /mvnw text eol=lf
 *.cmd text eol=crlf
+
+# Normaliza texto en general
+* text=auto
+
+# Código y configs -> LF
+*.java text eol=lf
+*.properties text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.md text eol=lf
+*.sh text eol=lf
+
+# Windows scripts -> CRLF
+*.cmd  text eol=crlf
+*.bat text eol=crlf
