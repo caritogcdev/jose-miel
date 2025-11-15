@@ -36,9 +36,15 @@ public class BookingService {
         TourSession session = sessionRepo.findById(req.tourSessionId()).orElseThrow();
 
         int pax = req.quantityVisitors();
+
         // Validación de capacidad (CONFIRMED + PENDING con lock vigente)
-        var seats = bookingRepo.reservedSeats(session.getId(), java.util.List.of(CONFIRMED, PENDING_PAYMENT));
-        int available = session.getCapacity() - Math.toIntExact(seats);
+       
+        // var seats = bookingRepo.reservedSeats(session.getId(), java.util.List.of(CONFIRMED, PENDING_PAYMENT));
+        // int available = session.getCapacity() - Math.toIntExact(seats);
+
+        int seats = bookingRepo.reservedSeats(session.getId(), java.util.List.of(CONFIRMED, PENDING_PAYMENT));
+        int available = session.getCapacity() - seats;
+
         if (pax > available)
             throw new IllegalStateException("No hay cupos suficientes");
 

@@ -1,8 +1,8 @@
 package com.josemiel.nicho_nativo_romeral.web.controllers;
 
 import com.josemiel.nicho_nativo_romeral.app.services.TourService;
-import com.josemiel.nicho_nativo_romeral.web.dto.response.TourResponse;
-import com.josemiel.nicho_nativo_romeral.web.dto.response.TourSessionResponse;
+// import com.josemiel.nicho_nativo_romeral.web.dto.response.TourResponse;
+// import com.josemiel.nicho_nativo_romeral.web.dto.response.TourSessionResponse;
 import com.josemiel.nicho_nativo_romeral.web.mappers.TourMapper;
 import com.josemiel.nicho_nativo_romeral.web.mappers.TourSessionMapper;
 import lombok.RequiredArgsConstructor;
