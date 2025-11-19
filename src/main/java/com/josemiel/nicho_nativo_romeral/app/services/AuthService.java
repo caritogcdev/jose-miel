@@ -20,6 +20,11 @@ public class AuthService {
     private final UserMapper userMapper;
     private final MailService mailService;
 
+    /**
+     * Registra un nuevo usuario.
+     * @param req
+     * @return
+     */
     @Transactional
     public UserResponse register(RegisterUserRequest req) {
         if (userRepo.existsByEmail(req.email())) {
@@ -39,7 +44,12 @@ public class AuthService {
         return userMapper.toResponse(user);
     }
 
-    // Login mínimo (si no usas AuthenticationManager todavía)
+    /**
+     * Login con email y contraseña en texto plano (por si no se usa Spring Security (AuthenticationManager) aún).
+     * @param email
+     * @param rawPassword
+     * @return
+     */
     public User loginRaw(String email, String rawPassword) {
         User u = userRepo.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("Credenciales inválidas"));
