@@ -1,8 +1,9 @@
 package com.josemiel.nicho_nativo_romeral.infrastructure.security;
 
+import com.josemiel.nicho_nativo_romeral.infrastructure.config.JwtProperties;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
+// import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -15,16 +16,28 @@ public class JwtService {
     private final Key key;
     private final long expirationMs;
 
+    // /**
+    //  * Constructor para inicializar el servicio JWT.
+    //  * @param secret
+    //  * @param expirationMs
+    //  */
+    // public JwtService(
+    //         @Value("${security.jwt.secret}") String secret,
+    //         @Value("${security.jwt.expiration-ms:86400000}") long expirationMs) {
+    //     this.key = Keys.hmacShaKeyFor(secret.getBytes());
+    //     this.expirationMs = expirationMs;
+    // }
+
     /**
      * Constructor para inicializar el servicio JWT.
-     * @param secret
-     * @param expirationMs
+     * @param props
+     * 
+     * Aquí usamos JwtProperties para obtener la configuración del JWT en lugar de
+     * usar @Value directamente como en el constructor comentado arriba.
      */
-    public JwtService(
-            @Value("${security.jwt.secret}") String secret,
-            @Value("${security.jwt.expiration-ms:86400000}") long expirationMs) {
-        this.key = Keys.hmacShaKeyFor(secret.getBytes());
-        this.expirationMs = expirationMs;
+    public JwtService(JwtProperties props) {
+        this.key = Keys.hmacShaKeyFor(props.getSecret().getBytes());
+        this.expirationMs = props.getExpirationMs();
     }
 
     /**
