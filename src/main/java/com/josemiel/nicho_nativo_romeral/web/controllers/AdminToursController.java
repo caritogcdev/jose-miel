@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/admin/tours")
 @RequiredArgsConstructor
+
 public class AdminToursController {
 
     private final TourService tourService;
@@ -160,4 +161,14 @@ public class AdminToursController {
         tourService.deletePricingTier(tierId);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/debug-role")
+    public ResponseEntity<String> debugRole(org.springframework.security.core.Authentication auth) {
+        if (auth == null) {
+            return ResponseEntity.ok("Sin Authentication en el contexto");
+        }
+        return ResponseEntity.ok(
+                "Usuario: " + auth.getName() + " | Authorities: " + auth.getAuthorities());
+    }
+
 }

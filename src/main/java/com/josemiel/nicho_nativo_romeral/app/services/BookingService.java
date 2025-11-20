@@ -10,12 +10,14 @@ import com.josemiel.nicho_nativo_romeral.domain.repositories.users.UserRepositor
 import com.josemiel.nicho_nativo_romeral.web.dto.request.CreateBookingRequest;
 import com.josemiel.nicho_nativo_romeral.web.dto.response.BookingResponse;
 import com.josemiel.nicho_nativo_romeral.web.mappers.BookingMapper;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 import static com.josemiel.nicho_nativo_romeral.domain.enums.BookingStatus.*;
 
@@ -30,23 +32,30 @@ public class BookingService {
     private final BookingMapper mapper;
     private final MailService mailService;
 
+    // ===================== CREAR RESERVA (USER) ===================== //
+
+    /**
+     * Crea una reserva para el usuario autenticado (se ignora cualquier userId que
+     * venga en el body por seguridad).
+     */
     @Transactional
-    public BookingResponse create(CreateBookingRequest req) {
-        User user = userRepo.findById(req.userId()).orElseThrow();
-        TourSession session = sessionRepo.findById(req.tourSessionId()).orElseThrow();
+    public BookingResponse create(CreateBookingRequest req, String userEmail) {
+        // Usuario autenticado
+        User user = userRepo.findByEmail(userEmail)
+                .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
+
+        // Sesión de tour
+        TourSession session = sessionRepo.findById(req.tourSessionId())
+                .orElseThrow(() -> new EntityNotFoundException("Sesión de tour no encontrada"));
 
         int pax = req.quantityVisitors();
 
-        // Validación de capacidad (CONFIRMED + PENDING con lock vigente)
-       
-        // var seats = bookingRepo.reservedSeats(session.getId(), java.util.List.of(CONFIRMED, PENDING_PAYMENT));
-        // int available = session.getCapacity() - Math.toIntExact(seats);
-
-        int seats = bookingRepo.reservedSeats(session.getId(), java.util.List.of(CONFIRMED, PENDING_PAYMENT));
+        // Validación de capacidad (CONFIRMED + PENDING_PAYMENT con lock vigente)
+        int seats = bookingRepo.reservedSeats(session.getId(), List.of(CONFIRMED, PENDING_PAYMENT));
         int available = session.getCapacity() - seats;
-
-        if (pax > available)
+        if (pax > available) {
             throw new IllegalStateException("No hay cupos suficientes");
+        }
 
         // Precio según tier válido hoy
         var tier = tierRepo.findTierFor(session.getTour().getId(), pax, LocalDate.now())
@@ -55,7 +64,7 @@ public class BookingService {
 
         // Crear booking DRAFT
         Booking b = mapper.fromCreateRequest(req);
-        b.setUser(user);
+        b.setUser(user); // 🔐 dueño = usuario autenticado
         b.setTourSession(session);
         b.setStatus(BookingStatus.DRAFT);
         b.setTotalAmount(total);
@@ -72,5 +81,51 @@ public class BookingService {
 
         mailService.sendBookingCreated(b);
         return mapper.toResponse(b);
+    }
+
+    // ===================== USER: VER SOLO SUS RESERVAS ===================== //
+
+    /**
+     * USER: obtener una reserva por id, verificando que sea del usuario.
+     */
+    @Transactional(readOnly = true)
+    public BookingResponse getMyBooking(Integer bookingId, String userEmail) {
+        Booking b = bookingRepo.findByIdAndUser_Email(bookingId, userEmail)
+                .orElseThrow(() -> new EntityNotFoundException("Reserva no encontrada o no te pertenece"));
+        return mapper.toResponse(b);
+    }
+
+    /**
+     * USER: listar todas mis reservas.
+     */
+    @Transactional(readOnly = true)
+    public List<BookingResponse> listMyBookings(String userEmail) {
+        return bookingRepo.findByUser_Email(userEmail)
+                .stream()
+                .map(mapper::toResponse)
+                .toList();
+    }
+
+    // ===================== ADMIN: VER TODAS ===================== //
+
+    /**
+     * ADMIN: obtener cualquier reserva por id.
+     */
+    @Transactional(readOnly = true)
+    public BookingResponse getByIdAdmin(Integer bookingId) {
+        Booking b = bookingRepo.findById(bookingId)
+                .orElseThrow(() -> new EntityNotFoundException("Reserva no encontrada"));
+        return mapper.toResponse(b);
+    }
+
+    /**
+     * ADMIN: listar todas las reservas.
+     */
+    @Transactional(readOnly = true)
+    public List<BookingResponse> listAllAdmin() {
+        return bookingRepo.findAll()
+                .stream()
+                .map(mapper::toResponse)
+                .toList();
     }
 }

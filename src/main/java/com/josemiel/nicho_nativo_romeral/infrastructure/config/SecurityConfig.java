@@ -5,13 +5,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.*;
-// import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-// import org.springframework.security.core.userdetails.UserDetailsService;
-// import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -22,8 +19,6 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    // private final UserDetailsService userDetailsService;
-    // private final PasswordEncoder passwordEncoder;
     private final JwtAuthenticationFilter jwtFilter;
 
     /**
@@ -45,6 +40,9 @@ public class SecurityConfig {
                                 "/api/tours/**",
                                 "/api/payments/simulated-callback" // webhook simulado público
                         ).permitAll()
+                        // Sólo ADMIN
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        // los demás requieren autenticación
                         .anyRequest().authenticated())
                 // .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
